@@ -2,34 +2,7 @@
       
   IndexedDB proxy implementation for Ext JS 4. A good choice for powering your project examples without need for server-side middleware and database.
   
-     ...
-		proxy: {
-			type: 'idb',
-			dbName: 'companies',
-			objectStoreName: 'company',
-			dbVersion: '1.15',
-         	writer: {
-	             type: 'json',
-	             writeAllFields: false
-	         },
-			initialData: [
-				{
-					name: 'IBM',
-					employees: 33,
-					incorporation: new Date(),
-					id: Ext.id()
-				},{
-					name: 'Hilton',
-					employees: 411,
-					incorporation: new Date(),
-					id: Ext.id()
-				}
-			]
-		},
-		...
-
-
-
+   
 ## License 
 
 (The MIT License)
