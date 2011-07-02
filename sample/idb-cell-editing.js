@@ -23,8 +23,7 @@ Ext.require([
     'Ext.data.*',
     'Ext.util.*',
     'Ext.state.*',
-    'Ext.form.*',
-    'Ext.ux.CheckColumn'
+    'Ext.form.*'
 ]);
 
 Ext.onReady(function(){
@@ -80,6 +79,7 @@ Ext.onReady(function(){
         }]
     });
 
+	window.s = store;
 	Company.getProxy().on('initialDataInserted', function() {store.load()});
 	
     var cellEditing = Ext.create('Ext.grid.plugin.CellEditing', {

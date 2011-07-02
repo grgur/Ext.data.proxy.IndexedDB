@@ -184,16 +184,36 @@ Ext.define('Ext.data.proxy.IndexedDB', {
      */
 	addInitialData: function() {
 		var me = this,
-			model = me.getModel().getName();
-		
+			model = me.getModel().getName(),
+		    data = me.initialData;
+
+        if (Ext.isObject(data) && data.isStore) {
+            data = me.getDataFromStore(data);
+        }
+
 		me.initialDataCount = me.initialData.length;
 		me.insertingInitialData = true;
 		
-		Ext.each(me.initialData, function(entry) {
+		Ext.each(data, function(entry) {
 			Ext.ModelManager.create(entry, model).save();
 		})
 	},
-	
+
+    /**
+     * Get data from store. Usually from Server proxy.
+     * Useful if caching data data that don't change much (e.g. for comboboxes)
+     * Used at {@link #addInitialData}
+     * @private
+     * @param {Ext.data.Store} store Store instance
+	 * @return {Array} Array of raw data
+     */
+    getDataFromStore: function(store) {
+        var data = [];
+        store.each(function(item) {
+            data.push(item.data)
+        });
+        return data;
+    },
     //inherit docs
     create: function(operation, callback, scope) {
         var records = operation.records,
