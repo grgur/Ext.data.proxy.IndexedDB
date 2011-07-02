@@ -39,7 +39,7 @@ Ext.onReady(function(){
 			type: 'idb',
 			dbName: 'companies',
 			objectStoreName: 'company',
-			dbVersion: '1.15',
+			dbVersion: '1.19',
             writer: {
                 type: 'json',
                 writeAllFields: false
@@ -79,7 +79,6 @@ Ext.onReady(function(){
         }]
     });
 
-	window.s = store;
 	Company.getProxy().on('initialDataInserted', function() {store.load()});
 	
     var cellEditing = Ext.create('Ext.grid.plugin.CellEditing', {

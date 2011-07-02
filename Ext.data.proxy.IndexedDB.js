@@ -90,7 +90,7 @@ Ext.define('Ext.data.proxy.IndexedDB', {
 		
 		this.checkDependencies();
 
-        this.addEvents('dbopen', 'updatedb','exception', 'cleardb', 'initialDataInserted');
+        this.addEvents('dbopen', 'updatedb','exception', 'cleardb', 'initialDataInserted', 'noIdb');
 
         //<debug>
         if (this.indexedDB === undefined) {
@@ -117,7 +117,7 @@ Ext.define('Ext.data.proxy.IndexedDB', {
         var me = this,
             request = me.indexedDB.open(me.dbName);
 			
-		me.on('updatedb', me.addInitialData, me);
+		me.on('updatedb', me.addInitialData);
 		
         request.onsuccess = function(e) {
             var db = me.db = me.indexedDB.db = e.target.result, indexes = me.indexes;
@@ -172,28 +172,49 @@ Ext.define('Ext.data.proxy.IndexedDB', {
 		var me = this;
 		
 		window.p = me;
-		
+
+        if (!me.indexedDB) {
+            me.fireEvent('noIdb');
+            Ext.Error.raise("IndexedDB is not supported in your browser.");
+        }
 		if (!Ext.isString(me.dbName))  Ext.Error.raise("The dbName string has not been defined in your Ext.data.proxy.IndexedDB");
 		if (!Ext.isString(me.objectStoreName)) Ext.Error.raise("The objectStoreName string has not been defined in your Ext.data.proxy.IndexedDB");
-			
+
 		return true;
 	},
-	
-	/**
-     * Add initial data if set at {@link #initialData} 
+
+    /**
+     * Add initial data if set at {@link #initialData}
      */
-	addInitialData: function() {
+    addInitialData: function() {
+        this.addData();
+    },
+
+	/**
+     * Add data when needed
+     * Also add initial data if set at {@link #initialData}
+     * @param {Array/Ext.data.Store} newData Data to add as array of objects or a store instance. Optional
+     * @param {Boolean} clearFirst Clear existing data first
+     */
+	addData: function(newData, clearFirst) {
 		var me = this,
 			model = me.getModel().getName(),
-		    data = me.initialData;
+		    data = newData || me.initialData;
 
-        if (Ext.isObject(data) && data.isStore) {
+        //clear objectStore first
+        if (clearFirst===true){
+            me.clear();
+            me.addData(data);
+            return;
+        }
+
+        if (Ext.isObject(data) && data.isStore===true) {
             data = me.getDataFromStore(data);
         }
 
-		me.initialDataCount = me.initialData.length;
+		me.initialDataCount = data.length;
 		me.insertingInitialData = true;
-		
+
 		Ext.each(data, function(entry) {
 			Ext.ModelManager.create(entry, model).save();
 		})
@@ -202,7 +223,7 @@ Ext.define('Ext.data.proxy.IndexedDB', {
     /**
      * Get data from store. Usually from Server proxy.
      * Useful if caching data data that don't change much (e.g. for comboboxes)
-     * Used at {@link #addInitialData}
+     * Used at {@link #addData}
      * @private
      * @param {Ext.data.Store} store Store instance
 	 * @return {Array} Array of raw data
