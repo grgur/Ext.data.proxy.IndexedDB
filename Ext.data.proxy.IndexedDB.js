@@ -5,7 +5,7 @@
  *
  * IndexedDB is only available in Firefox 4+ and Chrome 10+ at the moment.
  * 
- * Version: 0.32
+ * Version: 0.47
  *
  * TODO: respect sorters, filters, start and limit options on the Operation; failover option for remote proxies, ..
  */
@@ -92,12 +92,6 @@ Ext.define('Ext.data.proxy.IndexedDB', {
 
         this.addEvents('dbopen', 'updatedb','exception', 'cleardb', 'initialDataInserted', 'noIdb');
 
-        //<debug>
-        if (this.indexedDB === undefined) {
-            Ext.Error.raise("IndexedDB is not supported in this browser, please use another type of data proxy");
-        }
-        //</debug>
-
          //<debug>
         //fix old webkit references
         if ('webkitIndexedDB' in window) {
@@ -170,9 +164,7 @@ Ext.define('Ext.data.proxy.IndexedDB', {
      */
 	checkDependencies: function(){
 		var me = this;
-		
-		window.p = me;
-
+        window.p=me;
         if (!me.indexedDB) {
             me.fireEvent('noIdb');
             Ext.Error.raise("IndexedDB is not supported in your browser.");
@@ -384,7 +376,7 @@ Ext.define('Ext.data.proxy.IndexedDB', {
         request.onsuccess = function(event) {
             record = new Model(request.result, id);
             if (typeof callback == 'function') {
-                callback.call(scope || me, [record, request, event])
+                callback.call(scope || me, record, request, event);
             }
         };
 

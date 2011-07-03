@@ -135,7 +135,7 @@ Ext.onReady(function(){
 				var ts = Ext.Date.format(new Date(), 'U');
 	
                 var r = Ext.ModelManager.create({
-                    text: 'New Company 1',
+                    name: 'New Company 1',
 					id: ts
                 }, 'Company',ts);
 				r.save();
