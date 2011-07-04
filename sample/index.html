@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html manifest="bdb.appcache">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Browser Database Proxy Example</title>
+    <link rel="stylesheet" type="text/css" href="http://cdn.sencha.io/ext-4.0.2a/resources/css/ext-all.css" />
+    <link rel="stylesheet" type="text/css" href="http://cdn.sencha.io/ext-4.0.2a/examples/shared/example.css" />
+    <link rel="stylesheet" type="text/css" href="http://cdn.sencha.io/ext-4.0.2a/examples/ux/css/CheckHeader.css" />
+
+    <script type="text/javascript" src="http://cdn.sencha.io/ext-4.0.2a/bootstrap.js"></script>
+	<script type="text/javascript" src="../Ext.data.proxy.IndexedDB.js"></script>
+    <script type="text/javascript" src="../Ext.data.proxy.WebDB.js"></script>
+    <script type="text/javascript" src="../Ext.data.proxy.BrowserDB.js"></script>
+
+    <script type="text/javascript" src="bdb-cell-editing.js"></script>
+</head>
+<body>
+    <h1>BrowserDB Proxy Example</h1>
+    <p>This example shows usage of IndexedDB or WebDB proxy with editable grid, depending on browser support.</p>
+    <p>Note that the js is not minified so it is readable. See <a href="../Ext.data.proxy.BrowserDB.js">Ext.data.proxy.BrowserDB.js</a> and <a href="bdb-cell-editing.js">bdb-cell-editing.js</a>.</p>
+    <div id="editor-grid"></div>
+</body>
+</html>
