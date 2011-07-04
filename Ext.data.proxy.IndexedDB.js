@@ -408,8 +408,7 @@ Ext.define('Ext.data.proxy.IndexedDB', {
              if (cursor) {
                  //res.push(cursor.value);
                records.push(new Model(cursor.value, cursor.key));
-               cursor.continue();
-
+               cursor["continue"]();
              }
              else {
 
@@ -490,7 +489,7 @@ Ext.define('Ext.data.proxy.IndexedDB', {
             objectStore = me.getObjectStore('rw',Ext.bind(me.removeRecord, me, [id]));
         if (!objectStore) return;
         
-        var request = objectStore.delete(id);
+        var request = objectStore["delete"](id);
 
     },
 
@@ -515,7 +514,7 @@ Ext.define('Ext.data.proxy.IndexedDB', {
             var cursor = event.target.result;
              if (cursor) {
                 me.removeRecord(cursor.key);
-               cursor.continue();
+               cursor["continue"]();
              }
 			me.fireEvent('cleardb', me);
 			callback.call(scope || me);
