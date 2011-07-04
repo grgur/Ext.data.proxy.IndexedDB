@@ -19,8 +19,6 @@
         cfg.dbInUse = 'idb';
     }
 
-    console.log(cfg);
-
     Ext.define('Ext.data.proxy.BrowserDB', {
         extend: cfg.extend,
         alias : 'proxy.browserdb',
