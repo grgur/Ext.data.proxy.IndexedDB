@@ -5,94 +5,96 @@
  *
  * IndexedDB is only available in Firefox 4+ and Chrome 10+ at the moment.
  * 
- * Version: 0.47
+ * Version: 0.5
  *
  * TODO: respect sorters, filters, start and limit options on the Operation; failover option for remote proxies, ..
  */
 Ext.define('Ext.data.proxy.IndexedDB', {
-    extend: 'Ext.data.proxy.Proxy',
-    alias : 'proxy.idb',
-    alternateClassName: 'Ext.data.IdbProxy',
+    extend              : 'Ext.data.proxy.Proxy',
+
+    alias               : 'proxy.idb',
+
+    alternateClassName  : 'Ext.data.IdbProxy',
 
     /**
      * @cfg {String} version
      * database version. If different than current, use updatedb event to update database
      */
-    dbVersion: '1.0',
+    dbVersion           : '1.0',
 
     /**
      * @cfg {String} dbName
      * Name of database
      */
-    dbName: undefined,
+    dbName              : undefined,
 
     /**
      * @cfg {String} objectStoreName
      * Name of object store
      */
-    objectStoreName: undefined,
+    objectStoreName     : undefined,
 
-	/**
+    /**
      * @cfg {String} keyPath
      * Primary key for objectStore. Proxy will use reader's idProperty if not keyPath not defined. 
      */
-	keyPath: undefined,
-	
-	/**
+    keyPath             : undefined,
+    
+    /**
      * @cfg {Boolean} autoIncrement
      * Set true if keyPath is to autoIncrement. Defaults to IndexedDB default specification (false)
      */
-	autoIncrement: undefined,
-	
-	/**
+    autoIncrement       : true,
+    
+    /**
      * @cfg {Array} indexes
      * Array of Objects. Properties required are "name" for index name and "field" to specify index field
      * e.g. indexes: [{name: 'name', field: 'somefield', options: {unique: false}}]
      */
-    indexes: [],
-	
-	/**
+    indexes             : [],
+    
+    /**
      * @cfg {Array} initialData
      * Initial data that will be inserted in object store on store creation
      */
-	initialData: [],
-	
+    initialData         : [],
+    
     /**
      * @private
      * indexedDB object (if browser supports it)
      */
-    indexedDB: window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB,
+    indexedDB           : window.indexedDB || window.webkitIndexedDB || window.mozIndexedDB,
 
     /**
      * @private
      * db object
      */
-    db: undefined,
+    db                  : undefined,
 
-	/**
+    /**
      * @private
      * used to monitor initial data insertion. A helper to know when all data is in. Helps fight asynchronous nature of idb. 
      */
-	initialDataCount: 0,
-	
-	/**
+    initialDataCount    : 0,
+    
+    /**
      * @private
      * Trigger that tells that proxy is currently inserting initial data
      */
-	insertingInitialData: false,
-	
+    insertingInitialData: false,
+    
     /**
      * Creates the proxy, throws an error if local storage is not supported in the current browser.
      * @param {Object} config (optional) Config object.
      */
     constructor: function(config) {
         this.callParent(arguments);
-		
-		this.checkDependencies();
+        
+        this.checkDependencies();
 
         this.addEvents('dbopen', 'updatedb','exception', 'cleardb', 'initialDataInserted', 'noIdb');
 
-         //<debug>
+        //<debug>
         //fix old webkit references
         if ('webkitIndexedDB' in window) {
           window.IDBTransaction = window.webkitIDBTransaction;
@@ -108,72 +110,82 @@ Ext.define('Ext.data.proxy.IndexedDB', {
      * Sets up the Proxy by opening database and creatinbg object store if necessary
      */
     initialize: function() {
-        var me = this,
+        var me      = this,
             request = me.indexedDB.open(me.dbName);
-			
-		me.on('updatedb', me.addInitialData);
-		
+            
+        me.on('updatedb', me.addInitialData);
+        
         request.onsuccess = function(e) {
-            var db = me.db = me.indexedDB.db = e.target.result, indexes = me.indexes;
+            var db      = me.db = me.indexedDB.db = e.target.result, 
+                indexes = me.indexes,
+                setVrequest,
+                keyPath,
+                store;
 
             // We can only create Object stores in a setVersion transaction;
-            if(me.dbVersion != db.version) {
-              var setVrequest = db.setVersion(me.dbVersion);
+            if(me.dbVersion !== db.version) {
+                setVrequest = db.setVersion(me.dbVersion);
 
               // onsuccess is the only place we can create Object Stores
               setVrequest.onfailure = me.onError;
 
               setVrequest.onsuccess = function(e) {
-				//clean old versions
+                var i;
+
+                //clean old versions
                 if(db.objectStoreNames.contains(me.objectStoreName)) {
                   db.deleteObjectStore(me.objectStoreName);
                 }
-				
-				//set keyPath. Use idProperty if keyPath is not specified
-				if (!me.keyPath) me.keyPath = me.getReader().getIdProperty();
-				
-				// create objectStore
-                var keyPath = me.keyPath?{keyPath: me.keyPath}:undefined;
-                var store = db.createObjectStore(me.objectStoreName, keyPath, me.autoIncrement);
-				
-				// set indexes
-                for (var i in indexes) {
-                    db.objectStore.createIndex(indexes.name, indexes.field, indexes.options);
+                
+                //set keyPath. Use idProperty if keyPath is not specified
+                if (!me.keyPath) {
+                    me.keyPath = me.getReader().getIdProperty();
+                }
+                
+                // create objectStore
+                keyPath = me.keyPath?{keyPath: me.keyPath}:undefined;
+                store = db.createObjectStore(me.objectStoreName, keyPath, me.autoIncrement);
+                
+                // set indexes
+                for (i in indexes) {
+                    if (indexes.hasOwnProperty(i)) {
+                        db.objectStore.createIndex(indexes.name, indexes.field, indexes.options);
+                    }
                 }
 
-				//Database is open and ready so fire dbopen event
-				me.fireEvent('updatedb', me, db);
+                //Database is open and ready so fire dbopen event
+                me.fireEvent('updatedb', me, db);
               };
             }
-			me.fireEvent('dbopen', me, db);
+            me.fireEvent('dbopen', me, db);
         };
 
         request.onfailure = me.onerror;
     },
-	
-	/**
+    
+    /**
      * Universal error reporter for debugging purposes
-	 * @param {Object} err Error object.
+     * @param {Object} err Error object.
      */
     onError: function(err) {
         if (window.console) console.log(err);
     },
 
-	/**
+    /**
      * Check if all needed config options are set
      */
-	checkDependencies: function(){
-		var me = this;
+    checkDependencies: function(){
+        var me = this;
         window.p=me;
         if (!me.indexedDB) {
             me.fireEvent('noIdb');
             Ext.Error.raise("IndexedDB is not supported in your browser.");
         }
-		if (!Ext.isString(me.dbName))  Ext.Error.raise("The dbName string has not been defined in your Ext.data.proxy.IndexedDB");
-		if (!Ext.isString(me.objectStoreName)) Ext.Error.raise("The objectStoreName string has not been defined in your Ext.data.proxy.IndexedDB");
+        if (!Ext.isString(me.dbName))  Ext.Error.raise("The dbName string has not been defined in your Ext.data.proxy.IndexedDB");
+        if (!Ext.isString(me.objectStoreName)) Ext.Error.raise("The objectStoreName string has not been defined in your Ext.data.proxy.IndexedDB");
 
-		return true;
-	},
+        return true;
+    },
 
     /**
      * Add initial data if set at {@link #initialData}
@@ -182,16 +194,16 @@ Ext.define('Ext.data.proxy.IndexedDB', {
         this.addData();
     },
 
-	/**
+    /**
      * Add data when needed
      * Also add initial data if set at {@link #initialData}
      * @param {Array/Ext.data.Store} newData Data to add as array of objects or a store instance. Optional
      * @param {Boolean} clearFirst Clear existing data first
      */
-	addData: function(newData, clearFirst) {
-		var me = this,
-			model = me.getModel().getName(),
-		    data = newData || me.initialData;
+    addData: function(newData, clearFirst) {
+        var me = this,
+            model = me.getModel().getName(),
+            data = newData || me.initialData;
 
         //clear objectStore first
         if (clearFirst===true){
@@ -204,13 +216,13 @@ Ext.define('Ext.data.proxy.IndexedDB', {
             data = me.getDataFromStore(data);
         }
 
-		me.initialDataCount = data.length;
-		me.insertingInitialData = true;
+        me.initialDataCount = data.length;
+        me.insertingInitialData = true;
 
-		Ext.each(data, function(entry) {
-			Ext.ModelManager.create(entry, model).save();
-		})
-	},
+        Ext.each(data, function(entry) {
+            Ext.ModelManager.create(entry, model).save();
+        })
+    },
 
     /**
      * Get data from store. Usually from Server proxy.
@@ -218,7 +230,7 @@ Ext.define('Ext.data.proxy.IndexedDB', {
      * Used at {@link #addData}
      * @private
      * @param {Ext.data.Store} store Store instance
-	 * @return {Array} Array of raw data
+     * @return {Array} Array of raw data
      */
     getDataFromStore: function(store) {
         var data = [];
@@ -270,7 +282,7 @@ Ext.define('Ext.data.proxy.IndexedDB', {
         }
     },
 
-	/**
+    /**
      * Injects data in operation instance
      */
     readCallback: function(operation, records) {
@@ -325,12 +337,12 @@ Ext.define('Ext.data.proxy.IndexedDB', {
         }
     },
 
-	/**
+    /**
      * Create objectStore instance
-	 * @param {String} type Transaction type (r, rw)
-	 * @param {Function} callback Callback function
-	 * @param {Object} scope Callback fn scope
-	 * @return {Object} IDB objectStore instance
+     * @param {String} type Transaction type (r, rw)
+     * @param {Function} callback Callback function
+     * @param {Object} scope Callback fn scope
+     * @return {Object} IDB objectStore instance
      */
     getObjectStore: function(type, callback, scope) {
         try {
@@ -357,7 +369,7 @@ Ext.define('Ext.data.proxy.IndexedDB', {
      * Fetches a single record by id.
      * @param {Mixed} id Record id
      * @param {Function} callback Callback function
-	 * @param {Object} scope Callback fn scope
+     * @param {Object} scope Callback fn scope
      */
     getRecord: function(id, callback, scope) {
         var me = this,
@@ -383,11 +395,11 @@ Ext.define('Ext.data.proxy.IndexedDB', {
         return true;
     },
 
-	/**
+    /**
      * @private
      * Fetches all records
      * @param {Function} callback Callback function
-	 * @param {Object} scope Callback fn scope
+     * @param {Object} scope Callback fn scope
      */
     getAllRecords: function(callback, scope) {
         var me = this,
@@ -431,21 +443,21 @@ Ext.define('Ext.data.proxy.IndexedDB', {
 
         if (!objectStore) return;
 
-		var request = objectStore.add(rawData);
-		
-		request.onsuccess = function() {
-			if (me.insertingInitialData) {
-				me.initialDataCount--;
-				if (me.initialDataCount === 0) {
-					me.insertingInitialData = false;
-					me.fireEvent('initialDataInserted');
-				}
-			}
-		}
+        var request = objectStore.add(rawData);
+        
+        request.onsuccess = function() {
+            if (me.insertingInitialData) {
+                me.initialDataCount--;
+                if (me.initialDataCount === 0) {
+                    me.insertingInitialData = false;
+                    me.fireEvent('initialDataInserted');
+                }
+            }
+        }
         
     },
 
-	/**
+    /**
      * Updates the given record.
      * @param {Ext.data.Model} record The model instance
      */
@@ -516,10 +528,10 @@ Ext.define('Ext.data.proxy.IndexedDB', {
                 me.removeRecord(cursor.key);
                cursor["continue"]();
              }
-			me.fireEvent('cleardb', me);
-			callback.call(scope || me);
+            me.fireEvent('cleardb', me);
+            callback.call(scope || me);
         };
 
-		
+        
     }
 });
