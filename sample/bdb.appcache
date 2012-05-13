@@ -13,10 +13,10 @@ http://cdn.sencha.io/ext-4.1.0-gpl/resources/css/ext-all.css
 #javascript files
 http://cdn.sencha.io/ext-4.1.0-gpl/bootstrap.js
 http://cdn.sencha.io/ext-4.1.0-gpl/ext-all-dev.js
-Ext.data.proxy.IndexedDB.js
-Ext.data.proxy.WebDB.js
-Ext.data.proxy.BrowserDB.js
-sample/bdb-cell-editing.js
+../Ext.data.proxy.IndexedDB.js
+../Ext.data.proxy.WebDB.js
+../Ext.data.proxy.BrowserDB.js
+bdb-cell-editing.js
 
 NETWORK:
 *
