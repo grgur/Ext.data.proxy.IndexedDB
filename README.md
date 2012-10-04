@@ -1,9 +1,12 @@
 # Ext.data.proxy.IndexedDB
-      
+
   IndexedDB proxy implementation for Ext JS 4. A good choice for powering your project examples without need for server-side middleware and database.
-  
-   
-## License 
+
+# Ext.data.proxy.WebSQL for Sencha Touch 2
+ Moved to a new repo - https://github.com/grgur/Ext.data.proxy.WebSQL
+
+
+## License
 
 (The MIT License)
 
