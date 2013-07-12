@@ -1,16 +1,21 @@
 # Ext.data.proxy.IndexedDB
 
-  IndexedDB proxy implementation for Ext JS 4. A good choice for powering your project examples without need for server-side middleware and database.
+  IndexedDB proxy implementation for Ext JS 4.x.
+  IndexedDB is natively available in IE 10+, Firefox 4+, Chrome 10+, Opera 15+ Blackberry 10.0+.
+  IndexedDB can also be polyfilled for other browsers via: https://github.com/axemclion/IndexedDBShim
 
-# Ext.data.proxy.WebSQL for Sencha Touch 2
- Moved to a new repo - https://github.com/grgur/Ext.data.proxy.WebSQL
+  This project was forked from  https://github.com/grgur/Ext.data.proxy.IndexedDB in order to provide the following:
+  1. Better support for multiple object stores
+  2. Support for loading data stores limited by index values
+  3. Implementation of start and limit on read operations.
+
 
 
 ## License
 
 (The MIT License)
 
-Copyright (c) 2009-2011 Grgur Grisogono grguru@gmail.com
+Copyright (c) 2013 John Kleinschmidt
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
