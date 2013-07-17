@@ -9,7 +9,104 @@
   2. Support for loading data stores limited by index values
   3. Implementation of start and limit on read operations.
 
+To use this proxy, specify the following in your store's configuration.
+```javascript
+    ...
+    proxy: {
+        type: 'idb', //Proxy type for Ext.data.proxy.IndexedDB
+        dbName: 'companyinfo', //Database name
+        objectStoreName: 'employee', //Object store name 
+        dbVersion: 1 //Database version
+        indexes: [{
+            name: 'companyNameIdx', //Name of index
+            field: 'name',  //Field to index
+            options: {unique: true} //Index values can only be used for one record.
+        }]
 
+    }
+```
+
+If you have multiple ExtJS stores that you want to save to an IndexedDB, use the 
+IndexedDBManager to first initialize the database:
+```javascript
+    Ext.data.proxy.IndexedDBManager.initializeDB({
+        dbName: 'companyinfo',        
+        dbVersion: 1,
+        objectStores: [{
+            name: 'company',
+            keyPath: 'id',
+            indexes: [{
+                name: 'companyNameIdx', 
+                field: 'name', 
+                options: {unique: true}
+            }]
+        }, {
+            name: 'employee',
+            keyPath: 'id',
+            indexes: [
+                name: 'companyIdIdx', 
+                field: 'companyId', 
+                options: {unique: false} //Index value can be used by multiple records. 
+            }, {
+                name: 'visitDateIdx', 
+                field: 'visitDate', 
+                options: {unique: false}
+            }]
+        }],    
+        listeners: {
+            dbopen: init
+        }
+    });
+
+    function init() {
+        // create the Data Store
+        var companyStore = Ext.create('Ext.data.Store', {
+            initialDataLoaded: false,
+            autoSync: true,
+            autoLoad: true,
+            model: 'Company',
+            proxy: {
+                type: 'idb',
+                dbName: 'companyinfo',
+                objectStoreName: 'company',
+                dbVersion: Ext.data.proxy.IndexedDBManager.getDBVersion()
+            }
+        });
+        ...
+    }
+```
+You can use the store's load function to interact with indexes:
+
+```javascript
+employeeStore.load({
+    params: { //Load store via exact index value                                
+        index: 'companyIdIdx', 
+        indexValue: 123</b>
+    }
+});
+
+employeeStore.load({
+    params: { //Search for names between C - H
+        index: 'firstNameIdx', 
+        indexLower: 'C', 
+        indexUpper: 'H'
+    }
+});         
+```
+
+```javascript
+You can also do fuzzy (contains) searches to load:
+//Finds names that contain mi in first or last name(For example, Mike, Smith, etc)
+employeeStore.load({
+    params: {
+        containsSearch: 'mi', 
+        containsKeys: [
+            'firstName',
+            'lastName'
+        ]
+    }
+});
+```                                     
 
 ## License
 
