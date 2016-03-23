@@ -1,0 +1,10 @@
+CACHE MANIFEST
+# 2013-07-10:v1
+
+CACHE:
+http://cdn.sencha.io/ext-4.2.0-gpl/resources/ext-theme-classic/ext-theme-classic-all.css
+http://cdn.sencha.io/ext-4.2.0-gpl/examples/shared/example.css
+http://cdn.sencha.io/ext-4.2.0-gpl/ext-all-debug.js
+
+NETWORK:
+*
